@@ -75,18 +75,6 @@ function correctMovieTitle(){
 		}
 	}
 }
-//Ne fonctionne pas dans l'App de windows 8, il faut trouver un autre moyen
-function hideMovies(){
-	var toHide=[];
-	
-	if(localStorage["hide"]){
-		toHide = JSON.parse(localStorage["hide"]);
-	}
-	if(localStorage["bad"]){
-		toHide = toHide.concat(JSON.parse(localStorage["bad"]));
-	}
-	hiddenMovies = movies.separateArray(function(x){return toHide.indexOf(x.fileName)===-1});
-}
 function hideSpecificMovie(fileName){
 	hiddenMovies = hiddenMovies.concat(movies.separateArray(function(x){return x.fileName!==fileName;}));
 	grid.refreshData(movies);
@@ -112,23 +100,22 @@ Array.prototype.separateArray = function(predicate){
 window.onbeforeunload = function(){
 	localStorage["hide"] = JSON.stringify(hiddenMovies.map(function(x){return x.fileName;}));
 }
-$(document).ready(function(){
-	hideMovies();
-	correctMovieTitle();
+function createMoviesGrid() {
     //Ça serait vraiment cool permettre à l'usager de selectionner ses propres colonnes
 	var columns = 	[
-						{id:'poster', type: 'img', attributes: {src:function(x){return (x.poster?x.poster.imdb:"http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/large/film-184890147._V379391879_.png");}}},
-						{id:'title', type: 'a', search:true, attributes: {href:function(x){return x.imdb_url},innerHTML:function(x){return x.title}}},
-						{id:'plot_simple', type: 'text', search:true},
-						{id:'actors', type: 'text', search:true},
-						{id:'genres', type: 'text', search:true, searchList: uniqueArray(concatArrays(movies.map(function(x){return x.genres})))},
-						{id:'directors', type: 'text', search:true},
-						{id:'rating', type: 'text', order:true},
-						{id:'year', type: 'text', order:true},
+						{id:'Poster', type: 'img', attributes: {src:function(x){return (x.Poster?x.Poster:"http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/large/film-184890147._V379391879_.png");}}},
+						{ id: 'Title', type: 'a', search: true, attributes: { href: function (x) { return "http://www.imdb.com/title/" + x.imdbID }, innerHTML: function (x) { return x.Title } } },
+						{ id: 'Plot', type: 'text', search: true },
+						{ id: 'Actors', type: 'text', search: true },
+						{ id: 'Genre', type: 'text', search: true, searchList: uniqueArray(concatArrays([].map(function (x) { return x.genres }))) },
+						{ id: 'Director', type: 'text', search: true },
+						{ id: 'imdbRating', type: 'text', order: true },
+						{id:'Year', type: 'text', order:true},
 						{id:'hide', type: 'button', attributes: {innerHTML:function(x){return 'hide'},onclick:function(x){return function(){hideSpecificMovie(x.fileName);}}}}
 					];
-	grid = $("#movieTable").brunoGrid({ columns: columns, data: movies, sortBy: { id: 'rating', reverse: true } });
-	});
+	var grid = $("#movieTable").brunoGrid({ columns: columns, data: [], sortBy: { id: 'rating', reverse: true } });
+	return grid;
+}
 /*TODO: 
 Graph sur les années, les acteurs, etc (page statistique)
 Langue du film

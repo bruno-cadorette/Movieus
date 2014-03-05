@@ -62,6 +62,7 @@
     <Content Include="images\splashscreen.scale-100.png" />
     <Content Include="images\storelogo.scale-100.png" />
     <Content Include="js\brunogrid.js" />
+    <Content Include="js\dataAPI.js" />
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
     <Content Include="js\jquery-2.0.3.min.js" />

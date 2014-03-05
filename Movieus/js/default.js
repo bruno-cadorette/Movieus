@@ -11,7 +11,7 @@
             if (args.detail.previousExecutionState !== activation.ApplicationExecutionState.terminated) {
                 // TODO: This application has been newly launched. Initialize
                 // your application here.
-               // var names = loadMovies();
+                folderSelection().then(loadMovies);
                 
             } else {
                 // TODO: This application has been reactivated from suspension.
@@ -31,21 +31,15 @@
     };
 
     app.start();
-})();
-
-//Ne pas utiliser car pas finit
-function loadMovies() {
-    var movies = [];
     
-    function getDatabaseInfo(file) {
-        $.get(urlBuilder(file), function (data) {
-            movies.push(data);
-            var item = document.createElement("li");
-            item.innerHTML = data;
-            document.getElementById("movies").appendChild(item);
-        });
-    }
-
+})();
+function loadMovies(folder) {
+    var api = getApi();
+    var grid = createMoviesGrid();
+    changeLoadingState(10, "L'api a été chargé");
+    readFiles(getMoviesFromApi(api, grid), folder)
+}
+function folderSelection() {
     var moviesExtensions = [".mp4", ".avi"];
     // Clean scenario output 
     WinJS.log && WinJS.log("", "sample", "status");
@@ -56,34 +50,38 @@ function loadMovies() {
     // Users expect to have a filtered view of their folders depending on the scenario. 
     // For example, when choosing a documents folder, restrict the filetypes to documents for your application. 
     folderPicker.fileTypeFilter.replaceAll(moviesExtensions);
-
-    folderPicker.pickSingleFolderAsync().then(function (folder) {
-        function getMovies(item) {
-            for (var i = 0; i < item.length; i++) {
-                if (item[i] instanceof Windows.Storage.StorageFile) {
-                    getDatabaseInfo(item[i]);
-                }
-                else if (item[i] instanceof Windows.Storage.StorageFolder) {
-                    item[i].getItemsAsync().done(getMovies);
-                }
-            }
-        };
-        if (folder) {
-            // Application now has read/write access to all contents in the picked folder (including sub-folder contents) 
-            // Cache folder so the contents can be accessed at a later time 
-            Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList.addOrReplace("PickedFolderToken", folder);
-            folder.getItemsAsync().done(getMovies);
-            return movies;
-        } else {
-            // The picker was dismissed with no selected file 
-            WinJS.log && WinJS.log("Operation cancelled.", "sample", "status");
-        }
-    });
+    return folderPicker.pickSingleFolderAsync();
 }
 
 
-function urlBuilder(file) {
-    var urlBase = "http://mymovieapi.com/?title=";
-    var title = encodeURIComponent(file.displayName);
-    return urlBase+title;
+
+function readFiles(f, folder) {
+    function getMovies(items) {
+        for (var i = 0; i < items.length; i++) {
+            console.log(i);
+            if (items[i] instanceof Windows.Storage.StorageFile) {
+                f(items[i]);
+            }
+            else if (items[i] instanceof Windows.Storage.StorageFolder) {
+                items[i].getItemsAsync().done(getMoviesI);
+            }
+        }
+    }
+    
+    if (folder) {
+        // Application now has read/write access to all contents in the picked folder (including sub-folder contents) 
+        // Cache folder so the contents can be accessed at a later time 
+        Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList.addOrReplace("PickedFolderToken", folder);
+
+        folder.getFilesAsync().then(getMovies);
+        
+    } else {
+        // The picker was dismissed with no selected file 
+        WinJS.log && WinJS.log("Operation cancelled.", "sample", "status");
+    }
+}
+function changeLoadingState(add, message) {
+    document.getElementById("labelProgressBar").innerText = message;
+    var bar = document.getElementById("determinateProgressBar");
+    bar.value = bar.value + add;
 }

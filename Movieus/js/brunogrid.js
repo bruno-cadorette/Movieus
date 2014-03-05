@@ -108,6 +108,12 @@ brunoGrid.prototype.refreshData = function(data){
 	this.search();
 }
 
+
+brunoGrid.prototype.addRow = function (x) {
+    this.data.push(x);
+    this.search();
+}
+
 brunoGrid.prototype.orderBy = function(e){
 	var id = e.target.id;
 	if (this.sortBy.id === id){
